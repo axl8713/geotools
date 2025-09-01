@@ -33,6 +33,7 @@ import org.geotools.api.util.InternationalString;
 import org.geotools.data.DataUtilities;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.util.Classes;
+import org.geotools.util.NumberRange;
 import org.geotools.util.SimpleInternationalString;
 import org.locationtech.jts.geom.Geometry;
 
@@ -151,6 +152,8 @@ public class AttributeTypeBuilder {
     /** The list of valid values for attributes described by this type (enumeration). */
     private List<?> options;
 
+    private NumberRange<? extends Number> range;
+
     /** Constructs the builder. */
     public AttributeTypeBuilder() {
         this(CommonFactoryFinder.getFeatureTypeFactory(null));
@@ -198,6 +201,7 @@ public class AttributeTypeBuilder {
         isDefaultValueSet = false;
         length = null;
         options = null;
+        range = null;
     }
 
     public AttributeTypeBuilder setFactory(FeatureTypeFactory factory) {
@@ -224,6 +228,7 @@ public class AttributeTypeBuilder {
         if (type instanceof GeometryType) {
             crs = ((GeometryType) type).getCoordinateReferenceSystem();
         }
+
         return this;
     }
 
@@ -362,6 +367,10 @@ public class AttributeTypeBuilder {
         this.options = options;
     }
 
+    public void setRange(NumberRange<? extends Number> range) {
+        this.range = range;
+    }
+
     public AttributeTypeBuilder restriction(Filter restriction) {
         addRestriction(restriction);
         return this;
@@ -417,6 +426,11 @@ public class AttributeTypeBuilder {
         if (options != null && !options.isEmpty()) {
             Filter optionsRestriction = FeatureTypes.createFieldOptions(options);
             restrictions().add(optionsRestriction);
+        }
+
+        if (range != null) {
+            Filter rangeRestriction = FeatureTypes.createFieldRange(range);
+            restrictions().add(rangeRestriction);
         }
 
         AttributeType type = factory.createAttributeType(
